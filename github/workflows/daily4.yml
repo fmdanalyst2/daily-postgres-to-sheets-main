@@ -1,0 +1,87 @@
+name: Daily PostgreSQL to Sheets + Another Task
+
+on:
+  schedule:
+    - cron: "30 0 * * *"   
+  workflow_dispatch:
+
+jobs:
+
+  # ── Job 1: Update main data sheet ────────────────────────────────
+  update-main-sheet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install psycopg2-binary gspread google-auth
+
+      - name: Run main query script
+        run: python NewDAUFunnel_Daily.py
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+
+  # ── Job 2: Another independent task (runs at the same time) ───────
+  update-summary-or-log-sheet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install psycopg2-binary gspread pandas
+
+      - name: Run summary / stats script
+        run: python NewDAUFunnel_Weekly.py
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}   # ← can be different sheet
+
+      # ── Job 1: Update main data sheet ────────────────────────────────
+  update-esewa-sheet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install psycopg2-binary gspread google-auth
+
+      - name: Run main query script
+        run: python esewaorder.py
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+
+  # Optional: A third job that waits for both above jobs to finish
+  notify-or-cleanup:
+    runs-on: ubuntu-latest
+    needs: [update-main-sheet, update-summary-or-log-sheet]   # ← waits for both
+    steps:
+      - run: echo "4 sheet updates completed successfully!"
