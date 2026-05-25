@@ -2,7 +2,7 @@ name: Daily PostgreSQL to Sheets
 
 on:
   schedule:
-    - cron: "18 0 * * *" # Runs daily at 01:30 UTC
+    - cron: "18 0 1-15 * *" # Runs daily at 01:30 UTC
   workflow_dispatch:
 
 jobs:
