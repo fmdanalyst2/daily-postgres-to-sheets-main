@@ -2,7 +2,7 @@ name: Refresh Riders Availability View
 
 on:
   schedule:
-    - cron: "40 0 * * *" # 08:25 Nepal time
+    - cron: "40 0 1-15 * *" # 08:25 Nepal time
   workflow_dispatch:
 
 jobs:
