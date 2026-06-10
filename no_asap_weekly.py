@@ -11,6 +11,8 @@ conn = psycopg2.connect(
     user=os.environ["DB_USER"],
     password=os.environ["DB_PASSWORD"],
     dbname=os.environ["DB_NAME"]
+    connect_timeout=30
+
 )
 cur = conn.cursor()
 
