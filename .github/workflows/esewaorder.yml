@@ -2,7 +2,7 @@ name: Daily PostgreSQL to Sheets + Another Task
 
 on:
   schedule:
-    - cron: "30 2 1-15 * *"   
+    - cron: "30 2 * * *"   
   workflow_dispatch:
 
 jobs:
